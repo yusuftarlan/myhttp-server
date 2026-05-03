@@ -9,6 +9,19 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 
+#define BACKLOG 10
+
+#define THREAD_COUNT 8
+#define QUEUE_SIZE 128
+
+
+extern int queue[QUEUE_SIZE];
+extern int front;
+extern int rear;
+extern int count;
+extern pthread_mutex_t queue_mutex;
+extern pthread_cond_t queue_cond;
+
 int server_start(int port);
 
 #endif
