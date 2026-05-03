@@ -88,7 +88,7 @@ int queue_pop()
     return client_fd;
 }
 
-void *worker_thread(void *arg)
+void *worker_thread()
 {
     while (1)
     {

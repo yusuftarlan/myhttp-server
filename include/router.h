@@ -4,6 +4,6 @@
 #include "http.h"
 #include "file_server.h"
 
-int route_request(int client_fd, HttpRequest *httpRequest);
+void route_request(int client_fd, HttpRequest *httpRequest);
 
 #endif

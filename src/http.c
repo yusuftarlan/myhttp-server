@@ -79,14 +79,14 @@ int parse_http_request(const char *buffer, HttpRequest *request)
 int prepHttpResponseHeader(HttpResponse *httpResponse)
 {
     strcpy(httpResponse->statusLine, htppOKStatus);
-    snprintf(httpResponse->headers, sizeof(httpResponse->headers),
-             "Content-Type: %s\r\n"
-             "Content-Length: %ld\r\n"
-             "Connection: close\r\n"
-             "Cache-Control: public, max-age=31536000\r\n"
-             "\r\n",
-             httpResponse->MIMEtype,
-             httpResponse->fileSize);
+    return snprintf(httpResponse->headers, sizeof(httpResponse->headers),
+                    "Content-Type: %s\r\n"
+                    "Content-Length: %ld\r\n"
+                    "Connection: close\r\n"
+                    "Cache-Control: public, max-age=31536000\r\n"
+                    "\r\n",
+                    httpResponse->MIMEtype,
+                    httpResponse->fileSize);
 }
 
 int sendAll(int client_fd, const char *buffer, size_t bytesRead)
@@ -113,10 +113,10 @@ int sendAll(int client_fd, const char *buffer, size_t bytesRead)
 
 int send404HttpResponse(int client_fd)
 {
-    sendAll(client_fd, httpNotFoundResponse, strlen(httpNotFoundResponse));
+    return sendAll(client_fd, httpNotFoundResponse, strlen(httpNotFoundResponse));
 }
 
-int sendHttpResponseHeader(int client_fd, HttpResponse *httpResponse)
+void sendHttpResponseHeader(int client_fd, HttpResponse *httpResponse)
 {
     size_t headerSize = strlen(httpResponse->statusLine) + strlen(httpResponse->headers) + 1;
     char *header = calloc(headerSize, 1);
@@ -137,4 +137,5 @@ int sendFileContent(int client_fd, FILE *file)
     {
         sendAll(client_fd, BUFFER, bytesRead);
     }
+    return bytesRead;
 }

@@ -26,7 +26,7 @@ extern const char *httpServerErrorStatus;
 void initHttpNotFoundHeaders();
 void initHttpServerErrorHeaders();
 int initHttpNotFoundResponse();
-int sendHttpResponseHeader(int client_fd, HttpResponse *httpResponse);
+void sendHttpResponseHeader(int client_fd, HttpResponse *httpResponse);
 int prepHttpResponseHeader(HttpResponse *httpResponse);
 int parse_http_request(const char *buffer, HttpRequest *request);
 int send404HttpResponse(int client_fd);

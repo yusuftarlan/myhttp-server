@@ -1,7 +1,6 @@
 
 #include "file_server.h"
 
-
 int safe_path(const char *path)
 {
     if (path == NULL || path[0] == '\0')
@@ -43,7 +42,7 @@ int sendStaticFile(int client_fd, char *path)
     int control = snprintf(filePath, filePathSize, "%s%s", fileRoot, path);
     printf("filePATH:%s\n", filePath);
 
-    if (control < 0 || control >= filePathSize)
+    if (control < 0 || (size_t)control >= filePathSize)
     {
         printf("Birlestirme basarisiz veya kesildi\n");
         free(filePath); // Çıkmadan önce belleği temizle

@@ -1,2 +1,2 @@
 server: src/*
-	gcc  src/*  -Iinclude -o server  -pthread
+	gcc -Wall -Werror -Wextra src/* -Iinclude -o server -pthread
