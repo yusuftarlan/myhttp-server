@@ -1,9 +1,19 @@
 #include "server.h"
 
-
-int main(void)
+int main(int argc, char *argv[])
 {
-    int result = server_start(8080);
+    int port;
+    if (argc < 2)
+    {
+        port = 8080;
+    }
+    else
+    {
+        printf("sa");
+        // port = argv[1];
+    }
+
+    int result = server_start(port);
 
     if (result < 0)
     {
