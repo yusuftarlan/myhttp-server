@@ -68,7 +68,6 @@ int parse_http_request(const char *buffer, HttpRequest *request)
         request->path,
         request->version);
 
-    printf("result");
     if (result != 3)
     {
         return -1;
