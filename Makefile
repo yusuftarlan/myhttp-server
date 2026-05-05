@@ -11,7 +11,7 @@ SRC = src/*
 INCLUDE_PATH = include
 
 # Compilation Flags
-FLAGS = -Wall -Werror -Wextra -pthread
+FLAGS =  -pthread
 
 all: ${NAME}
 

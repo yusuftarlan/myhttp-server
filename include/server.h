@@ -2,18 +2,20 @@
 #define SERVER_H
 
 #include "base.h"
+#include "http.h"
 #include "router.h"
 
 #include <pthread.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
-
+#include <sys/time.h>
+#include <signal.h>
+#include <errno.h>
 #define BACKLOG 10
 
 #define THREAD_COUNT 8
 #define QUEUE_SIZE 128
-
 
 extern int queue[QUEUE_SIZE];
 extern int front;

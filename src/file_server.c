@@ -24,7 +24,7 @@ int sendStaticFile(int client_fd, char *path)
 
     if (!safe_path(path))
     {
-        send404HttpResponse(client_fd);
+        send_404Http_Response(client_fd);
         return -1;
     }
 
@@ -53,7 +53,7 @@ int sendStaticFile(int client_fd, char *path)
 
     if (file == NULL)
     {
-        send404HttpResponse(client_fd);
+        send_404Http_Response(client_fd);
         // 2. DÜZELTME: ASIL SIZINTIYI ÇÖZEN SATIR
         free(filePath);
         return 0;

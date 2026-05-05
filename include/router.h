@@ -2,6 +2,7 @@
 #define ROUTER_H
 #include "base.h"
 #include "http.h"
+#include "api_server.h"
 #include "file_server.h"
 
 void route_request(int client_fd, HttpRequest *httpRequest);
