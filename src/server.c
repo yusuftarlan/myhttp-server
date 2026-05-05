@@ -1,6 +1,5 @@
 #include "server.h"
 #include "http.h"
-#include <signal.h>
 
 int server_running = 1;
 
@@ -22,27 +21,143 @@ void handle_signal(int sig)
     }
 }
 
+char *_read_header(int client_fd, char *tempBuffer, size_t *total_bytes)
+{
+
+    ssize_t bytes_received = 0;
+
+    char *endOfHeader;
+    do
+    {
+        size_t remaining_space = MAX_REQ_SIZE - *total_bytes - 1;
+
+        // Eğer buffer dolduysa daha fazla okuma yapma
+        if (remaining_space <= 0)
+        {
+            fprintf(stderr, "Hata: Buffer tamamen doldu!\n");
+            break;
+            ;
+        }
+        printf("%zu..%zu..\n", *total_bytes, remaining_space);
+        bytes_received = recv(client_fd, (tempBuffer + *total_bytes), remaining_space, 0);
+
+        // Hata var
+        if (bytes_received < 0)
+        {
+            // Timeout oldu
+            if (errno == EAGAIN || errno == EWOULDBLOCK)
+            {
+                // send_request_timeout(client_fd);
+                close(client_fd);
+                return NULL;
+            }
+            else if (errno == EINTR)
+            {
+                continue;
+            }
+            else
+            {
+                // Gerçek recv hatası
+                perror("recv");
+                close(client_fd);
+                return NULL;
+            }
+        }
+        else if (bytes_received == 0)
+        {
+            // Client bağlantıyı kapattı
+            close(client_fd);
+            return NULL;
+        }
+        else
+        {
+            printf("BUFFER YAZILDI!\n");
+            printf("%s\n", tempBuffer);
+            *total_bytes = *total_bytes + bytes_received;
+            tempBuffer[*total_bytes] = '\0';
+
+            endOfHeader = strstr(tempBuffer, "\r\n\r\n");
+
+            if (endOfHeader != NULL)
+            {
+                printf("endofheaderbulundu\n");
+                return endOfHeader;
+            }
+        }
+
+    } while (bytes_received > 0 && *total_bytes < MAX_HEADER_SIZE);
+}
 static void *_handle_client(int client_fd)
 {
-    char *buffer = (char *)calloc(BUFFER_SIZE, sizeof(char));
+    char tempBuffer[MAX_REQ_SIZE + 1] = {0};
+    size_t total_bytes = 0;
+    char *endOfHeader = NULL;
+    char *startBody = NULL;
+    size_t header_size;
 
-    ssize_t bytes_received = recv(client_fd, buffer, BUFFER_SIZE, 0);
+    // HEADER SONUNA KADAR BULUNMAYA ÇALIŞILIR.
+    // endOfRequest parametresine artık gerek yok, kaldırdık.
+    endOfHeader = _read_header(client_fd, tempBuffer, &total_bytes);
 
-    if (bytes_received > 0)
+    if (endOfHeader != NULL)
     {
-        HttpRequest httpRequest;
+        header_size = endOfHeader - tempBuffer;
 
-        if (parse_http_request(buffer, &httpRequest) == 0)
+        startBody = endOfHeader + 4; // \r\n\r\n atlanarak body'nin başlangıcı bulunur
+        printf("startbodyAtandi: %zu\n", (startBody - endOfHeader));
+    }
+    else
+    {
+        fprintf(stderr, "Hata: Header sonu (\\r\\n\\r\\n) bulunamadi veya baglanti koptu.\n");
+        close(client_fd);
+        return NULL;
+    }
+
+    // GÜVENLİK: Header boyutunun sınırı aşmasını engelleyen kontrolü aktif etmelisiniz!
+    if (header_size > MAX_REQ_SIZE)
+    {
+        // send_BadRequest_Response(client_fd); // Fonksiyonunuzu aktif edin
+        close(client_fd);
+        return NULL;
+    }
+
+    // Sadece header'ı tutacak buffer
+    char headerBuffer[header_size + 1];
+
+    // DÜZELTME 1: total_bytes KADAR DEĞİL, header_size KADAR KOPYALA
+    strncpy(headerBuffer, tempBuffer, header_size);
+    headerBuffer[header_size] = '\0'; // strncpy sonuna \0 koymayabilir, biz garantiye alıyoruz
+
+    HttpRequest httpRequest;
+    if (parse_http_request_header(headerBuffer, &httpRequest) != 0)
+    {
+        // send_BadRequest_Response(client_fd);
+        close(client_fd);
+        return NULL;
+    }
+
+    // DÜZELTME 2: Şu ana kadar recv ile okunmuş olan mevcut body miktarını hesapla
+    size_t current_body_size = total_bytes - (header_size + 4);
+
+    // Body'yi ayıkla (Önceki Valgrind hatalarını çözdüğümüz fonksiyonunuz)
+    parse_http_request_body(tempBuffer, &httpRequest, startBody, httpRequest.content_length);
+
+    if (strcmp(httpRequest.method, "POST") == 0)
+    {
+        // DÜZELTME 3: Eğer beklenen boyut, elimizdeki boyuttan BÜYÜKSE okumaya devam et
+        if (httpRequest.content_length > current_body_size)
         {
-            route_request(client_fd, &httpRequest);
+            // EKSİK BODY'İ TAMAMLAMA MANTIĞI BURAYA GELECEK
+            // Geri kalan (httpRequest.content_length - current_body_size) kadar byte'ı
+            // recv() ile bir while döngüsü içinde okuyup body'ye eklemelisiniz.
         }
     }
 
-    free(buffer);
+    route_request(client_fd, &httpRequest);
 
+    close(client_fd);
     return NULL;
 }
-
 void queue_push(int client_fd)
 {
 
@@ -88,6 +203,18 @@ int queue_pop()
     return client_fd;
 }
 
+void set_recv_timeout(int client_fd, int second)
+{
+    struct timeval tv;
+    tv.tv_sec = second;
+    tv.tv_usec = 0;
+
+    setsockopt(client_fd,
+               SOL_SOCKET,
+               SO_RCVTIMEO,
+               &tv,
+               sizeof(tv));
+}
 void *worker_thread()
 {
     while (1)
@@ -110,7 +237,9 @@ void initHeaders()
 {
     initHttpNotFoundHeaders();
     initHttpServerErrorHeaders();
+    initHttpBadRequestHeaders();
     initHttpNotFoundResponse();
+    initHttpBadRequestResponse();
 }
 
 void closingRoutine(int server_fd)
@@ -195,6 +324,8 @@ int server_start(int PORT)
         int client_fd = accept(server_fd,
                                (struct sockaddr *)&client_addr,
                                &client_addr_len);
+
+        set_recv_timeout(client_fd, 5);
 
         if (client_fd < 0)
         {
