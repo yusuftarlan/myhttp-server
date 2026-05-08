@@ -13,17 +13,20 @@
 #include <signal.h>
 #include <errno.h>
 
-#define BACKLOG 36
-#define THREAD_COUNT 8
-#define QUEUE_SIZE 32
+/* Server configuration constants */
+#define BACKLOG 36       /* Connection queue size for listen() */
+#define THREAD_COUNT 8   /* Number of worker threads */
+#define QUEUE_SIZE 32    /* Client work queue capacity */
 
+/* Thread-safe client queue state variables */
 extern int queue[QUEUE_SIZE];
-extern int front;
-extern int rear;
-extern int count;
-extern pthread_mutex_t queue_mutex;
-extern pthread_cond_t queue_cond;
+extern int front;                    /* Queue head pointer */
+extern int rear;                     /* Queue tail pointer */
+extern int count;                    /* Number of items in queue */
+extern pthread_mutex_t queue_mutex;  /* Queue access lock */
+extern pthread_cond_t queue_cond;    /* Queue notification signal */
 
+/* Server initialization and main loop */
 int server_start(int port);
 
 #endif

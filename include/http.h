@@ -1,32 +1,36 @@
 
 #ifndef HTTP_H
 #define HTTP_H
-#define _GNU_SOURCE
-#include "base.h" //dasda
 
+#define _GNU_SOURCE
+
+#include "base.h"
 #include <sys/socket.h>
 
-#define MAX_HEADER_SIZE 8192 // 8 KB
-#define MAX_REQ_SIZE 53248
-#define RECV_CHUNK_SIZE 1024 // Her recv'de en fazla 1 KB oku
-#define STATIC_RES_HEADER_SIZE 512
+/* HTTP protocol configuration constants */
+#define MAX_HEADER_SIZE 8192      /* Maximum HTTP header size in bytes */
+#define MAX_REQ_SIZE 53248        /* Maximum total request size */
+#define RECV_CHUNK_SIZE 1024      /* Single socket read chunk size */
+#define STATIC_RES_HEADER_SIZE 512 /* Response header buffer size */
+
+/* Parsed HTTP request structure containing method, path, and body data */
 typedef struct
 {
-    char method[16];  // "GET", "POST", "DELETE" vs. için fazlasıyla yeterli
-    char path[256];   // İstek yapılan URL/dosya yolu
-    char version[16]; // "HTTP/1.1"
-    unsigned long long content_length;
-    char *header;
-    char *body;
+    char method[16];              /* HTTP method: GET, POST etc. */
+    char path[256];               /* Request URL/file path */
+    char version[16];             /* HTTP version: HTTP/1.1 */
+    unsigned long long content_length; /* Size of request body */
+    char *header;                 /* Complete header section */
+    char *body;                   /* Request body data for POST requests */
 } HttpRequest;
 
+/* HTTP response structure with status, headers, and content metadata */
 typedef struct
 {
-    char statusLine[32];
-    char headers[300];
-    const char *MIMEtype;
-    long fileSize;
-
+    char statusLine[32];          /* HTTP status line (e.g., HTTP/1.1 200 OK) */
+    char headers[300];            /* Formatted response headers */
+    const char *MIMEtype;         /* Content MIME type */
+    long fileSize;                /* Size of response body */
 } HttpResponse;
 
 extern char *httpNotFoundResponse;
