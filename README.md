@@ -1,23 +1,23 @@
 # myhttp-server
 
-Bu proje, C dili ile yazilmis basit bir HTTP sunucusudur. Temel amac,
-socket programlama, HTTP request/response yapisi, statik dosya sunumu,
-basit routing ve thread havuzu mantigini ogrenmektir.
+Bu proje, C dili ile yazılmış basit bir HTTP sunucusudur. Temel amaç,
+socket programlama, HTTP request/response yapısı, statik dosya sunumu,
+basit routing ve thread havuzu mantığını öğrenmektir.
 
-Bu proje production amacli bir web server degildir. Bilgisayar muhendisligi
-ogrencisi seviyesinde, HTTP'nin temel calisma mantigini gosteren egitsel bir
+Bu proje production amaçlı bir web server değildir. Bilgisayar mühendisliği
+öğrencisi seviyesinde, HTTP'nin temel çalışma mantığını gösteren eğitsel bir
 projedir.
 
-## Ozellikler
+## Özellikler
 
-- TCP socket uzerinden baglanti kabul eder.
-- Sabit sayida worker thread ile istemci baglantilarini isler.
-- HTTP request header'ini okur ve method, path, version bilgilerini ayristirir.
-- `GET` istekleri ile `www/` altindaki statik dosyalari sunar.
-- `POST /api/hello` endpoint'i ile JSON body icinden isim alir ve JSON cevap doner.
-- Bulunamayan dosyalar icin `404 Not Found` cevabi uretir.
-- Bozuk request'ler icin `400 Bad Request` cevabi uretir.
-- Bilinen dosya uzantilarina gore temel MIME type belirler.
+- TCP socket üzerinden bağlantı kabul eder.
+- Sabit sayıda worker thread ile istemci bağlantılarını işler.
+- HTTP request header'ini okur ve method, path, version bilgilerini ayrıştırır.
+- `GET` istekleri ile `www/` altındaki statik dosyaları sunar.
+- `POST /api/hello` endpoint'i ile JSON body içinden isim alır ve JSON cevap döner.
+- Bulunamayan dosyalar için `404 Not Found` cevabı üretir.
+- Bozuk request'ler için `400 Bad Request` cevabı üretir.
+- Bilinen dosya uzantılarına göre temel MIME type belirler.
 
 ## Proje Dizini
 
@@ -25,65 +25,65 @@ projedir.
 myhttp-server/
 |-- include/
 |   |-- api_server.h     # API endpoint bildirimleri
-|   |-- base.h           # Ortak include'lar, temel sabitler ve logger baglantisi
-|   |-- cJSON.h          # cJSON kutuphanesi header dosyasi
-|   |-- file_helper.h    # Dosya boyutu ve MIME type yardimcilari
+|   |-- base.h           # Ortak include'lar, temel sabitler ve logger bağlantısı
+|   |-- cJSON.h          # cJSON kütüphanesi header dosyası
+|   |-- file_helper.h    # Dosya boyutu ve MIME type yardımcıları
 |   |-- file_server.h    # Statik dosya sunumu bildirimi
-|   |-- http.h           # HTTP request/response struct'lari ve fonksiyonlari
-|   |-- logger.h         # Basit log makrolari
-|   |-- router.h         # Request yonlendirme bildirimi
-|   `-- server.h         # Socket server, thread ve kuyruk yapilari
+|   |-- http.h           # HTTP request/response struct'ları ve fonksiyonları
+|   |-- logger.h         # Basit log makroları
+|   |-- router.h         # Request yönlendirme bildirimi
+|   `-- server.h         # Socket server, thread ve kuyruk yapıları
 |-- src/
-|   |-- api_server.c     # POST /api/hello endpoint'i ve JSON cevaplari
-|   |-- cJSON.c          # cJSON kutuphanesi implementasyonu
-|   |-- file_helper.c    # MIME type secimi ve dosya boyutu hesaplama
-|   |-- file_server.c    # www/ altindan statik dosya okuma ve gonderme
-|   |-- http.c           # HTTP parse ve response gonderme fonksiyonlari
-|   |-- main.c           # Program giris noktasi
-|   |-- router.c         # Method/path'e gore ilgili handler secimi
+|   |-- api_server.c     # POST /api/hello endpoint'i ve JSON cevapları
+|   |-- cJSON.c          # cJSON kütüphanesi implementasyonu
+|   |-- file_helper.c    # MIME type seçimi ve dosya boyutu hesaplama
+|   |-- file_server.c    # www/ altından statik dosya okuma ve gönderme
+|   |-- http.c           # HTTP parse ve response gönderme fonksiyonları
+|   |-- main.c           # Program giriş noktası
+|   |-- router.c         # Method/path'e göre ilgili handler seçimi
 |   `-- server.c         # Socket kurulum, accept loop, thread pool ve kuyruk
 |-- www/
 |   |-- css/
-|   |   `-- style.css    # Statik CSS dosyasi
+|   |   `-- style.css    # Statik CSS dosyası
 |   |-- js/
-|   |   `-- index.js     # POST /api/hello istegi atan frontend kodu
+|   |   `-- index.js     # POST /api/hello isteği atan frontend kodu
 |   |-- media/
-|   |   `-- guide.mp4    # Statik video dosyasi
-|   |-- hero-img.png     # Statik resim dosyasi
+|   |   `-- guide.mp4    # Statik video dosyası
+|   |-- hero-img.png     # Statik resim dosyası
 |   `-- index.html       # Ana sayfa
 |-- .gitignore
-|-- Dockerfile           # Docker konteyner yapilandirmasi
-|-- Makefile             # Linux/POSIX ortam icin derleme komutlari
+|-- Dockerfile           # Docker konteyner yapılandırması
+|-- Makefile             # Linux/POSIX ortam için derleme komutları
 |-- log.txt
 |-- README.md
 ```
 
 ## Derleme ve Calistirma
 
-Proje POSIX socket API kullandigi icin Linux veya WSL gibi POSIX uyumlu bir
-ortam hedeflenmistir. Windows uzerindeki bazi GCC kurulumlari
-`sys/socket.h`, `netinet/in.h` ve `unistd.h` gibi header dosyalarini
+Proje POSIX socket API kullandığı için Linux veya WSL gibi POSIX uyumlu bir
+ortham hedeflenmektedir. Windows üzerindeki bazı GCC kurulumları
+`sys/socket.h`, `netinet/in.h` ve `unistd.h` gibi header dosyalarını
 desteklemeyebilir.
 
-Derlemek icin:
+Derlemek için:
 
 ```bash
 make
 ```
 
-Calistirmak icin:
+Çalıştırmak için:
 
 ```bash
 make run
 ```
 
-Varsayilan port:
+Varsayılan port:
 
 ```text
 8080
 ```
 
-Tarayicida:
+Tarayıcıda:
 
 ```text
 http://localhost:8080/
@@ -91,16 +91,16 @@ http://localhost:8080/
 
 ## Desteklenen Endpoint'ler
 
-| Method | Path             | Aciklama                                                            |
+| Method | Path             | Açıklama                                                            |
 | ------ | ---------------- | ------------------------------------------------------------------- |
-| `GET`  | `/`              | `www/index.html` dosyasini dondurur.                                |
-| `GET`  | `/index.html`    | Ana HTML dosyasini dondurur.                                        |
-| `GET`  | `/css/style.css` | CSS dosyasini dondurur.                                             |
-| `GET`  | `/js/index.js`   | JavaScript dosyasini dondurur.                                      |
-| `GET`  | `/hero-img.png`  | Resim dosyasini dondurur.                                           |
-| `POST` | `/api/hello`     | JSON body icinden `name` alanini okur ve selamlama mesaji dondurur. |
+| `GET`  | `/`              | `www/index.html` dosyasını döndürür.                                |
+| `GET`  | `/index.html`    | Ana HTML dosyasını döndürür.                                        |
+| `GET`  | `/css/style.css` | CSS dosyasını döndürür.                                             |
+| `GET`  | `/js/index.js`   | JavaScript dosyasını döndürür.                                      |
+| `GET`  | `/hero-img.png`  | Resim dosyasını döndürür.                                           |
+| `POST` | `/api/hello`     | JSON body içinden `name` alanını okur ve selamlama mesajı döndürür. |
 
-## POST /api/hello Ornegi
+## POST /api/hello Örneği
 
 Request:
 
@@ -113,7 +113,7 @@ Content-Length: 16
 {"name":"Yusuf"}
 ```
 
-Basarili response ornegi:
+Başarılı response örneği:
 
 ```json
 {
@@ -124,9 +124,9 @@ Basarili response ornegi:
 }
 ```
 
-Gecersiz JSON veya eksik `name` alani icin API hata cevabi doner.
+Geçersiz JSON veya eksik `name` alanı için API hata cevabı döner.
 
-## GET Istek Akisi
+## GET İstek Akışı
 
 ```text
 Client
@@ -137,12 +137,12 @@ server.c
   |
   v
 worker thread
-  kuyruktan client_fd alir
+  kuyruktan client_fd alır
   |
   v
 http.c
   request header okunur
-  method, path, version ayristirilir
+  method, path, version ayrıştırılır
   |
   v
 router.c
@@ -150,8 +150,8 @@ router.c
   |
   v
 file_server.c
-  path guvenlik kontrolunden gecer
-  www/ altindaki dosya acilir
+  path güvenlik kontrolünden geçer
+  www/ altındaki dosya açılır
   |
   v
 file_helper.c
@@ -159,23 +159,23 @@ file_helper.c
   |
   v
 http.c
-  HTTP response header'i ve dosya icerigi client'a gonderilir
+  HTTP response header'i ve dosya içeriği client'a gönderilir
 ```
 
-## POST /api/hello Istek Akisi
+## POST /api/hello İstek Akışı
 
 ```text
 Client
   |
   v
 server.c
-  client baglantisi kabul edilir ve worker thread'e verilir
+  client bağlantısı kabul edilir ve worker thread'e verilir
   |
   v
 http.c
   header okunur
   Content-Length bulunur
-  gerekirse body'nin kalani okunur
+  gerekirse body'nin kalanı okunur
   |
   v
 router.c
@@ -184,78 +184,56 @@ router.c
   v
 api_server.c
   body cJSON ile parse edilir
-  name alani kontrol edilir
+  name alanı kontrol edilir
   |
   v
 http.c
-  JSON response client'a gonderilir
+  JSON response client'a gönderilir
 ```
 
-## Temel Tasarim
+## Temel Tasarım
 
-Sunucu tek bir ana thread ile client baglantilarini kabul eder. Kabul edilen
-`client_fd` degerleri thread-safe bir kuyruga eklenir. Worker thread'ler bu
-kuyruktan baglanti alir, request'i okur, route eder ve response gonderir.
+Sunucu tek bir ana thread ile client bağlantılarını kabul eder. Kabul edilen
+`client_fd` değerleri thread-safe bir kuyruğa eklenir. Worker thread'ler bu
+kuyruktan bağlantı alır, request'i okur, route eder ve response gönderir.
 
-Bu yapi, her baglanti icin yeni thread acmak yerine sabit sayida worker thread
-kullanir. Boylece thread olusturma maliyeti azalir ve ayni anda islenebilecek
-baglanti sayisi daha kontrollu hale gelir.
+Bu yapı, her bağlantı için yeni thread açmak yerine sabit sayıda worker thread
+kullanır. Böylece thread oluşturma maliyeti azalır ve aynı anda işlenebilecek
+bağlantı sayısı daha kontrollü hale gelir.
 
 ## Kapsam
 
-Bu projenin mevcut kapsami:
+Bu projenin mevcut kapsamı:
 
-- Temel HTTP/1.1 request satirini okumak
+- Temel HTTP/1.1 request satırını okumak
 - Header sonunu `\r\n\r\n` ile tespit etmek
 - `Content-Length` ile basit request body okumak
 - `GET` ile statik dosya sunmak
-- `POST /api/hello` ile basit JSON API cevabi uretmek
-- Basit hata cevaplari uretmek
-- Thread pool ve kuyruk mantigini gostermek
+- `POST /api/hello` ile basit JSON API cevabı üretmek
+- Basit hata cevapları üretmek
+- Thread pool ve kuyruk mantığını göstermek
 
-## Sinirlar
+## Sınırlar
 
-Bu projede su ozellikler desteklenmez:
+Bu projede şu özellikler desteklenmez:
 
 - HTTPS/TLS
 - HTTP keep-alive
 - Chunked transfer encoding
 - Query string parsing
-- URL decode islemi
-- Cookie/session yonetimi
+- URL decode işlemi
+- Cookie/session yönetimi
 - Dosya upload
-- Buyuk dosya optimizasyonlari
+- Büyük dosya optimizasyonları
 - Dinamik route parametreleri
-- Kapsamli HTTP header parsing
-- CORS header yonetimi
-- Production seviyesinde guvenlik
+- Kapsamlı HTTP header parsing
+- CORS header yönetimi
+- Production seviyesinde güvenlik
 
-## Bilinen Davranislar
+## Bilinen Davranışlar
 
-- Baglanti basina tek request islenir, ardindan baglanti kapatilir.
-- Statik dosyalar sadece `www/` klasoru altindan sunulur.
-- Path icinde `..`, ters slash veya `%` karakteri varsa istek reddedilir.
-- API endpoint'i sadece `/api/hello` path'i icin tanimlidir.
-- Desteklenmeyen method'lar su anda genel hata cevabina dusmektedir.
-
-## Gelistirme Onerileri
-
-Projeyi daha temiz ve ilerletmek icin mantikli sonraki adimlar:
-
-1. HTTP response olusturma isini tek bir yardimci fonksiyonda toplamak.
-2. `README`, router ve test isteklerini ayni endpoint tablosuna gore hizalamak.
-3. Basit test komutlari eklemek: `curl /`, `curl /olmayan-dosya`, `curl -X POST /api/hello`.
-
-## Neden Bu Proje Degerli?
-
-Hazir framework kullanmadan HTTP server yazmak, web'in alt katmanlarini anlamak
-icin iyi bir egzersizdir. Bu proje sayesinde su sorulara pratik cevap verilir:
-
-- Bir tarayici server'a baglaninca socket seviyesinde ne olur?
-- HTTP request aslinda hangi metinden olusur?
-- Header ile body arasindaki ayrim nedir?
-- Bir dosya HTTP response olarak nasil gonderilir?
-- Birden fazla client'i ayni anda islemek icin thread pool nasil kullanilir?
-
-Bu nedenle proje kucuk tutulsa bile, temel sistem programlama ve web protokolu
-bilgisini gostermek icin anlamlidir.
+- Bağlantı başına tek request işlenir, ardından bağlantı kapatılır.
+- Statik dosyalar sadece `www/` klasörü altından sunulur.
+- Path içinde `..`, ters slash veya `%` karakteri varsa istek reddedilir.
+- API endpoint'i sadece `/api/hello` path'i için tanımlanmıştır.
+- Desteklenmeyen method'lar şu anda genel hata cevabına düşmektedir.
