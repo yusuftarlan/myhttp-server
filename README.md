@@ -25,16 +25,17 @@ projedir.
 myhttp-server/
 |-- include/
 |   |-- api_server.h     # API endpoint bildirimleri
-|   |-- base.h           # Ortak standart kutuphane include'lari ve sabitler
-|   |-- cJSON.h          # JSON kutuphanesi header dosyasi
+|   |-- base.h           # Ortak include'lar, temel sabitler ve logger baglantisi
+|   |-- cJSON.h          # cJSON kutuphanesi header dosyasi
 |   |-- file_helper.h    # Dosya boyutu ve MIME type yardimcilari
 |   |-- file_server.h    # Statik dosya sunumu bildirimi
 |   |-- http.h           # HTTP request/response struct'lari ve fonksiyonlari
+|   |-- logger.h         # Basit log makrolari
 |   |-- router.h         # Request yonlendirme bildirimi
 |   `-- server.h         # Socket server, thread ve kuyruk yapilari
 |-- src/
 |   |-- api_server.c     # POST /api/hello endpoint'i ve JSON cevaplari
-|   |-- cJSON.c          # JSON kutuphanesi implementasyonu
+|   |-- cJSON.c          # cJSON kutuphanesi implementasyonu
 |   |-- file_helper.c    # MIME type secimi ve dosya boyutu hesaplama
 |   |-- file_server.c    # www/ altindan statik dosya okuma ve gonderme
 |   |-- http.c           # HTTP parse ve response gonderme fonksiyonlari
@@ -42,12 +43,19 @@ myhttp-server/
 |   |-- router.c         # Method/path'e gore ilgili handler secimi
 |   `-- server.c         # Socket kurulum, accept loop, thread pool ve kuyruk
 |-- www/
-|   |-- index.html       # Ana sayfa
-|   |-- css/style.css    # Statik CSS dosyasi
-|   `-- js/index.js      # POST /api/hello istegi atan frontend kodu
+|   |-- css/
+|   |   `-- style.css    # Statik CSS dosyasi
+|   |-- js/
+|   |   `-- index.js     # POST /api/hello istegi atan frontend kodu
+|   |-- media/
+|   |   `-- guide.mp4    # Statik video dosyasi
+|   |-- hero-img.png     # Statik resim dosyasi
+|   `-- index.html       # Ana sayfa
+|-- .gitignore
+|-- Dockerfile           # Docker konteyner yapilandirmasi
 |-- Makefile             # Linux/POSIX ortam icin derleme komutlari
 |-- log.txt
-`-- README.md
+|-- README.md
 ```
 
 ## Derleme ve Calistirma
@@ -83,13 +91,14 @@ http://localhost:8080/
 
 ## Desteklenen Endpoint'ler
 
-| Method | Path | Aciklama |
-| --- | --- | --- |
-| `GET` | `/` | `www/index.html` dosyasini dondurur. |
-| `GET` | `/index.html` | Ana HTML dosyasini dondurur. |
-| `GET` | `/css/style.css` | CSS dosyasini dondurur. |
-| `GET` | `/js/index.js` | JavaScript dosyasini dondurur. |
-| `POST` | `/api/hello` | JSON body icinden `name` alanini okur ve selamlama mesaji dondurur. |
+| Method | Path             | Aciklama                                                            |
+| ------ | ---------------- | ------------------------------------------------------------------- |
+| `GET`  | `/`              | `www/index.html` dosyasini dondurur.                                |
+| `GET`  | `/index.html`    | Ana HTML dosyasini dondurur.                                        |
+| `GET`  | `/css/style.css` | CSS dosyasini dondurur.                                             |
+| `GET`  | `/js/index.js`   | JavaScript dosyasini dondurur.                                      |
+| `GET`  | `/hero-img.png`  | Resim dosyasini dondurur.                                           |
+| `POST` | `/api/hello`     | JSON body icinden `name` alanini okur ve selamlama mesaji dondurur. |
 
 ## POST /api/hello Ornegi
 
@@ -108,10 +117,10 @@ Basarili response ornegi:
 
 ```json
 {
-  "status": "success",
-  "data": {
-    "message": "Merhaba Yusuf!\n"
-  }
+    "status": "success",
+    "data": {
+        "message": "Merhaba Yusuf!\n"
+    }
 }
 ```
 
@@ -231,16 +240,11 @@ Bu projede su ozellikler desteklenmez:
 
 ## Gelistirme Onerileri
 
-Projeyi cok buyutmeden daha temiz ve ogrenci projesine yakisir hale getirmek
-icin siradaki mantikli adimlar:
+Projeyi daha temiz ve ilerletmek icin mantikli sonraki adimlar:
 
-1. `405 Method Not Allowed` cevabini gercekten ayri bir response olarak eklemek.
-2. HTTP response olusturma isini tek bir yardimci fonksiyonda toplamak.
-3. `README`, router ve test isteklerini ayni endpoint tablosuna gore hizalamak.
-4. `main.c` icinde port argumanini dogru parse etmek.
-5. Debug `printf` ciktilarini temizlemek veya basit bir log makrosuna tasimak.
-6. Derleme bayraklarina `-Wall -Wextra -Wpedantic` eklemek.
-7. Basit test komutlari eklemek: `curl /`, `curl /olmayan-dosya`, `curl -X POST /api/hello`.
+1. HTTP response olusturma isini tek bir yardimci fonksiyonda toplamak.
+2. `README`, router ve test isteklerini ayni endpoint tablosuna gore hizalamak.
+3. Basit test komutlari eklemek: `curl /`, `curl /olmayan-dosya`, `curl -X POST /api/hello`.
 
 ## Neden Bu Proje Degerli?
 

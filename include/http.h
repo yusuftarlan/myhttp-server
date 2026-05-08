@@ -16,7 +16,7 @@
 /* Parsed HTTP request structure containing method, path, and body data */
 typedef struct
 {
-    char method[16];              /* HTTP method: GET, POST etc. */
+    char method[16];              /* HTTP method: GET, POST, etc. */
     char path[256];               /* Request URL/file path */
     char version[16];             /* HTTP version: HTTP/1.1 */
     unsigned long long content_length; /* Size of request body */

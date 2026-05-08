@@ -33,7 +33,7 @@ int _api_hello(int client_fd, HttpRequest *httpRequest)
     {
         /* Format greeting message with extracted name */
         char message[256];
-        snprintf(message, sizeof(message), "Hello %s!\n", name->valuestring);
+        snprintf(message, sizeof(message), "Hello %s!", name->valuestring);
 
         /* Create JSON response with greeting message */
         cJSON *data_out = cJSON_CreateObject();
