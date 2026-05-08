@@ -1,17 +1,716 @@
 <!doctype html>
-<html lang="en">
+<html lang="tr">
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta name="description" content="C ile framework kullanmadan yazılmış eğitsel HTTP server projesi tanıtımı." />
         <link rel="stylesheet" href="css/style.css" />
-        <title>Document</title>
+        <title>C ile HTTP Server</title>
     </head>
     <body>
-        <h1>selamlar</h1>
+        <header class="site-header">
+            <nav class="topbar" aria-label="Ana navigasyon">
+                <a class="brand" href="https://github.com/yusuftarlan/myhttp-server">Github</a>
+                <div class="topbar-links">
+                    <a href="#limits">Sınırlar</a>
+                    <a href="#proof">Sonuç</a>
+                </div>
+            </nav>
 
-        <button id="postBtn">POST gönder</button>
-        <p id="result"></p>
+            <section class="hero" id="top">
+                <div class="hero-content">
+                    <h1>C ile HTTP sunucusu nasıl yapılır?</h1>
+                    <p class="hero-text">
+                        Bu proje, hazır bir web framework kullanmadan socket seviyesinden başlayıp istek okuma, yönlendirme, statik dosya sunma ve JSON cevap
+                        üretme süreçlerini adım adım gösterir.
+                    </p>
+                    <div>
+                        <audio controls>
+                            <source src="/media/demo.mp3" type="audio/mpeg" />
+                            Tarayıcınız audio etiketini desteklemiyor.
+                        </audio>
 
-        <script src="./js/index.js"></script>
+                        <!-- <video controls width="640">
+                            <source src="/media/gitar.mp4" type="video/mp4" />
+                            Tarayıcınız video etiketini desteklemiyor.
+                        </video>-->
+                    </div>
+                </div>
+                <div class="hero-image" aria-label="Sunucu görseli">
+                    <img src="hero-img.png" alt="C dili ile HTTP sunucusu görseli" loading="eager" decoding="async" />
+                </div>
+            </section>
+        </header>
+
+        <main class="layout">
+            <aside class="sidebar" aria-label="Yol haritası">
+                <p class="sidebar-title">Yol haritası</p>
+                <ol>
+                    <li><a href="#problem">HTTP server nedir?</a></li>
+                    <li><a href="#libs">İlgili kütüphaneler</a></li>
+                    <li><a href="#architect">Sistem mimarisi</a></li>
+                    <li><a href="#socket">Socket kurulumu</a></li>
+                    <li><a href="#thread-pool">Thread havuzu ve thread safe kuyruk</a></li>
+                    <li><a href="#parse">HTTP isteği okuma ve yorumlanması</a></li>
+                    <li><a href="#router">Router sistemi</a></li>
+                    <li><a href="#static">Statik dosya sunumu</a></li>
+                    <li><a href="#api">API noktaları</a></li>
+                    <li><a href="#httpc">http.c dosyası ve veri gönderme detayları</a></li>
+                    <li><a href="#errors">HTTP hata cevapları</a></li>
+                    <li><a href="#limits">Sistemin sınırları ve öğrendiklerim</a></li>
+                    <li><a href="#proof">Sonuç</a></li>
+                </ol>
+            </aside>
+
+            <section class="content" id="roadmap">
+                <article class="section-block" id="problem">
+                    <span class="section-number">01</span>
+                    <h2>HTTP server nedir?</h2>
+                    <p>
+                        HTTP sunucusu (veya web sunucusu), internet tarayıcılarından gelen istekleri HTTP protokolü üzerinden karşılayan, içerikleri saklayan ve
+                        ileten yazılım ve donanımlardır. Bu proje ise bu sunucunun yazılımsal kısmını ifade eder.
+                    </p>
+                    <p>
+                        İstemci sunucuya metin tabanlı bir HTTP isteği yollar. Sunucu bu metni yorumlar, uygun cevabı hazırlar ve aynı TCP bağlantısı üzerinden
+                        geri döndürür.
+                    </p>
+                    <p class="file-ref">İlgili dosyalar: <code>README.md</code> <code>src/main.c</code>, <code>src/server.c</code></p>
+                </article>
+
+                <article class="section-block" id="libs">
+                    <span class="section-number">02</span>
+                    <h2>İlgili kütüphaneler</h2>
+                    <p>
+                        Proje kapsamında C standart kütüphanesi ve POSIX sistem programlama kütüphaneleri kullanılmıştır. JSON işlemleri için harici cJSON
+                        kütüphanesi eklenmiştir. (<a href="https://github.com/DaveGamble/cJSON"><strong>cJSON Github</strong></a
+                        >)
+                    </p>
+                    <ul>
+                        <li><code>stdio.h</code> - Dosya işlemleri, terminal çıktısı ve hata mesajları için.</li>
+                        <li><code>stdlib.h</code> - Bellek ayırma, sayı dönüştürme ve program sonlandırma işlemleri için</li>
+                        <li><code>string.h</code> - String karşılaştırma, arama ve kopyalama işlemleri için</li>
+                        <li><code>errno.h</code> - Sistem çağrılarında oluşan hata durumlarını kontrol etmek için</li>
+                        <li><code>unistd.h</code> - POSIX sistem çağrıları ve dosya tanımlayıcılarını kapatma işlemleri için</li>
+                        <li><code>sys/socket.h</code> - Socket oluşturma, veri alma ve veri gönderme işlemleri için</li>
+                        <li><code>netinet/in.h</code> - IPv4 adres yapıları ve port tanımlamaları için</li>
+                        <li><code>pthread.h</code> - Thread pool yapısını kurmak ve worker thread'leri yönetmek için</li>
+                        <li><code>sys/time.h</code> - Socket okuma zaman aşımı ayarı için kullanıldı.</li>
+                        <li><code>signal.h</code> - Sunucuyu kapanış sinyallerine karşı kontrollü durdurmak için</li>
+                    </ul>
+
+                    <p class="file-ref">İlgili dosyalar: <code>include/*</code></p>
+                </article>
+
+                <article class="section-block" id="architect">
+                    <span class="section-number">03</span>
+                    <h2>Sistem mimarisi</h2>
+                    <p>Sunucunun birden fazla isteği eş zamanlı işlemesi için multi thread yapı olarak tasarlanmıştır.</p>
+                    <p>Thread kullanımında race condition yaşanmaması için <strong>thread safe istek kuyruğu</strong> bulunmaktadır.</p>
+                    <p>Producer-consumer modeli kullanılmış, paylaşılan kuyruğa erişim ise mutex ve condition variable ile thread-safe hale getirilmiştir.</p>
+                    <pre><code>Client / Browser
+      |
+      |  HTTP Request (İstemciden gelir)
+      v
++--------------------+
+| TCP Socket Server  |
+| socket()           |
+| bind()             |
+| listen()           |
++--------------------+
+      |
+      | accept(Sunucu isteği kabul eder)
+      v
++--------------------+
+| Application Queue  |
+| queue_push(fd)     |
++--------------------+
+      |
+      | threadler kuyruğa iş gelmesini beklerler.
+      v
++-----------------------------+
+| Thread Pool                 |
+|                             |
+| Worker 1  Worker 2  Worker |
+|    |         |        3     |
+|    |         |        |     |
++----|---------|--------|-----+
+     |
+     | seçili thread "client_fd" (istemci) ile ilgilenir.
+     v
++-----------------------------+  _ _ _ _ _ _ _ _ _ _ _ _ 
+| HTTP Request Reader         |                         |
+| recv()                      |                         |
+| find header end: \r\n\r\n   |                         |
+| read body with Content-Length|                        |
++-----------------------------+                         |
+      |                                                 |
+      v
++-----------------------------+                  İstek yorumlanır
+| HTTP Parser                 |
+| method / path / version     |                         |
+| headers / body              |                         |
++-----------------------------+                         |
+      |                                                 |
+      v                                                 |
++-----------------------------+                         |
+| Router                      |                         |
+| GET  -> static file server  |                         |
+| POST -> API handler         |                         |
+| else -> error response      | _ _ _ _ _ _ _ _ _ _ _ _ |                         
++-----------------------------+                         
+      |
+      +------------------------------+
+      |                              |
+      v                              v
++--------------------+       +--------------------+
+| Static File Server |       | API Handler        |
+| open www/file      |       | parse JSON body    | İsteğe bağlı fonksiyonlar çalışır
+| detect MIME type   |       | create JSON output |
++--------------------+       +--------------------+
+      |                              |
+      +---------------+--------------+
+                      | 
+                      v
++-----------------------------+
+| HTTP Response Builder       |
+| status line                 |
+| headers                     | Cevap oluşturulur
+| Content-Length              |
+| body / file content         |
++-----------------------------+
+                      |
+                      | send()
+                      v
+Client / Browser yanıtı alır</code></pre>
+
+                    <p class="file-ref">İlgili dosyalar: <code>README.md</code> <code>src/main.c</code>, <code>src/server.c</code></p>
+                </article>
+
+                <article class="section-block" id="socket">
+                    <span class="section-number">04</span>
+                    <h2>Socket kurulumu (server.c:main fonksiyon içinde)</h2>
+                    <p>Sunucunun internetten gelen istekleri dinleyebilmesi için ilk olarak bir boş bir soket açmak gerekir.</p>
+                    <pre><code>
+
+struct sockaddr_in server_addr; // Sunucu ayarlarını tutan hazır struct
+int server_fd; // Sunucu için bir file descriptor
+// Server socketi oluşturma AF_INET: IPv4 SOCK_STREAM: akış tabanlı, 0: protokol: varsayılan protokolü seç
+if ((server_fd = socket(AF_INET, SOCK_STREAM, 0)) < 0)
+{
+    exit(EXIT_FAILURE);
+}
+                    </code></pre>
+
+                    <p>Sunucu ayarlarını yapmak için sunucu struct kirli veriden temizlenir</p>
+
+                    <pre><code>
+memset(&server_addr, 0, sizeof(server_addr));
+server_addr.sin_family = AF_INET;
+server_addr.sin_addr.s_addr = INADDR_ANY; // Makinenin tüm yerel IPv4 arayüzlerinden gelen bağlantıları dinle.
+server_addr.sin_port = htons(PORT); 
+                    </code></pre>
+                    <p>bind() ile struct içindeki ayarlar sokete uygulanır.</p>
+                    <pre><code>
+// Socket'i server_fd'ye bağlama işlemi
+if (bind(server_fd, (struct sockaddr *)&server_addr, sizeof(server_addr)) < 0)
+{
+    exit(EXIT_FAILURE);
+}
+                    </code></pre>
+                    <p>listen() komutu ile soket istekleri dinlemeye başlar</p>
+                    <pre><code>
+// BACKLOG : kabul edilmeyi bekleyen bağlantı kuyruğunun boyutu
+if (listen(server_fd, BACKLOG) < 0)
+{
+    exit(EXIT_FAILURE);
+}
+                    </code></pre>
+                    <p class="file-ref">İlgili dosya: <code>src/server.c</code></p>
+                </article>
+
+                <article class="section-block" id="thread-pool">
+                    <span class="section-number">05</span>
+                    <h2>Thread havuzu ve thread safe kuyruk</h2>
+                    <p>
+                        Her bağlantı için yeni thread açmak yerine sabit sayıda worker thread kullanılır. Ana thread client fd değerlerini thread-safe kuyruğa
+                        koyar.
+                    </p>
+                    <pre><code>
+pthread_mutex_t queue_mutex = PTHREAD_MUTEX_INITIALIZER; //Kuyruğu trade safe yapmak için
+pthread_cond_t queue_cond = PTHREAD_COND_INITIALIZER; //Thread durum yönetimi için
+pthread_t threads[THREAD_COUNT]; //Threadleri yönetmek için dizi
+
+int queue[QUEUE_SIZE]; // Client_fd 'leri tutan trade safe kullandığımız dizi
+int front = 0;
+int rear = 0;
+int count = 0;
+                    </code></pre>
+                    <h3>Threadlerin oluşturulması (server.c:main fonksiyon içinde)</h3>
+                    <pre><code>                       
+for (int i = 0; i < THREAD_COUNT; i++)
+{
+    pthread_create(&threads[i], NULL, worker_thread, NULL);
+}
+                    </code></pre>
+                    <p>
+                        Worker thread'ler kuyruktan iş alır, request'i işler ve bağlantıyı kapatır. Böylece aynı anda birden fazla istek işlenebilir ama thread
+                        sayısı kontrol altında kalır.
+                    </p>
+                    <h3>Threadin yapacağı komutların fonksiyonu</h3>
+                    <pre><code>
+void *worker_thread()
+{
+    while (1)
+    {
+        int client_fd = queue_pop(); //Kuyruktan iş çekmeye çalışır.
+
+        if (client_fd == -1)
+        {
+            break; // Döngüden çık ve thread'i temizce sonlandır.
+        }
+
+        _handle_client(client_fd);
+        close(client_fd);
+    }
+
+    return NULL;
+}
+                    </code></pre>
+
+                    <p class="file-ref">İlgili dosyalar: <code>include/server.h</code>, <code>src/server.c</code></p>
+                </article>
+
+                <article class="section-block" id="parse">
+                    <span class="section-number">06</span>
+                    <h2>HTTP isteği (request) okuma ve yorumlanması</h2>
+                    <p>
+                        Client_fd 'yi kuyruktan alan thread _handle_client() fonksiyonu ile gelen isteği işlemeye başlar. İsteği işleyebilmek için HTTP
+                        protokolünü ve gelecek mesajın şablonunu bilmek gerekir.
+                    </p>
+                    <p>HTTP request 4 ana parçadan oluşur: request line, header, boşluk ve body.</p>
+                    <h3>Örnek bir HTTP POST isteği</h3>
+                    <pre><code>
+POST /api/ogrenci HTTP/1.1\r\n
+Host: example.com\r\n
+Content-Type: application/json\r\n
+Content-Length: 64\r\n
+Authorization: Bearer TOKEN_BURAYA_YAZILIR\r\n
+Accept: application/json\r\n
+\r\n
+{
+    "adSoyad": "Ali Veli",
+    "ogrenciNo": "123456",
+    "bolum": "Bilgisayar Mühendisliği"
+}
+                        </code></pre>
+                    <p>İlk satırdan method, path ve HTTP version bilgisini içerir. Altından gelen satırlar ise gelen istek hakkındaki detaylı bilgilerdir.</p>
+                    <p><code>\r\n\r\n</code> karakter örüntüsüne kadar gelen bütün satırlar header içerisine dahildir.</p>
+                    <p>Header ve body arasındaki ayrım <code>\r\n\r\n</code> karakter dizisi ile tespit edilir.</p>
+                    <p>Ayrımdan sonra gelen bütün ifade <strong>body</strong> kısmıdır.</p>
+                    <p>Artık kullanıcıdan gelen mesajın neye benzeyeceğini bildiğimize göre mesajı çekmeye başlayabiliriz.</p>
+                    <p>_handle_client() fonksiyonunda ilk olarak gerekli değişkenler tanımlanır.</p>
+                    <pre><code>
+static void *_handle_client(int client_fd)
+{
+    int _toutErrorCode = 0; // İstek zaman aşımı bayrağı
+    char tempBuffer[MAX_REQ_SIZE + 1] = {0}; // Kullanıcıdan gelen ham verinin doldurulacağı buffer
+    size_t total_bytes = 0; // (t) anına kadar yakalanmış toplam byte
+
+    char *endOfHeader = NULL;  // Header sonunu işaret edecek gösterici (pointer)
+    char *startBody = NULL; // Body başlangıcını işaret edecek gösterici (pointer)
+    size_t header_size;  // Header boyutunu tutan değişken
+    ...}
+                    </code></pre>
+
+                    <p>_read_header() fonksiyonu ile isteğin header/body ayrımını yapan örüntü yakalanmaya çalışılır.</p>
+                    <pre><code>
+endOfHeader = _read_header(client_fd, tempBuffer, &total_bytes, &_toutErrorCode);
+                    </code></pre>
+                    <p>
+                        Eğer <code>endOfHeader</code> için bir değer dönülmüşse <code>header_size = endOfHeader - tempBuffer</code> ile header boyutu
+                        hesaplanır.
+                    </p>
+                    <p>
+                        Header boyutu tanımlanan maksimum boyutunu aşmadıysa isteğin yorumlanması için parçalanması gerekir. Parçalama işlemi için ayrı bir
+                        buffer ve parçalanan isteğe ait bilgilerin tutulacağı struct yapı olan <code>HttpRequest</code> değişkeni oluşturulur.
+                    </p>
+                    <pre><code>
+char headerBuffer[header_size + 1];
+strncpy(headerBuffer, tempBuffer, header_size);
+headerBuffer[header_size] = '\0';
+
+HttpRequest httpRequest = {0};
+                    </code></pre>
+                    <p>headerBuffer ve httpRequest <code>parse_http_request_header()</code> fonksiyonuna gönderilir.</p>
+                    <pre><code>
+int parse_http_request_header(char *buffer, HttpRequest *httpRequest)
+{
+    char *current_pos = buffer; // Header başlangıcını tutan pointer
+    char *next_line = strstr(current_pos, "\r\n"); //İlk satırın sonunu gösteren pointer 
+    ...
+}
+                    </code></pre>
+                    <p>
+                        Eğer next_line tespit edilirse <code>size_t status_line_length = next_line - current_pos;</code> ile ilk satırın boyutu hesaplanır.
+                        Metod, yol ve HTTP versiyonu verilerini çekmek için geçici ilk satır dizisi oluşturulur.
+                    </p>
+                    <pre><code>
+char tempStatusLine[status_line_length + 1];
+strncpy(tempStatusLine, current_pos, status_line_length);
+tempStatusLine[status_line_length] = '\0';
+                    </code></pre>
+                    <p>sscanf() metodu ile ilk satırdan verileri çekilir ve HttpRequest struct'ı içine kayıt edilir.</p>
+                    <pre><code>
+int parsed_count = sscanf(tempStatusLine, "%15s %255s %15s", httpRequest->method,
+httpRequest->path, httpRequest->version);
+                    </code></pre>
+                    <p>
+                        Body içeren HTTP metotlarında body boyutu <code>Content-Length: #</code> olarak header içinde gönderilir. Bu bilgi mühimdir çünkü
+                        gönderilen body eksiksiz olması gerekir. Eğer eksik ise Content-Length kadar byte okunana kadar soketten okumaya devam edilir.
+                    </p>
+                    <p>
+                        <code>parse_http_request_header()</code> içinde <code>_find_content_length()</code> ile eğer varsa
+                        <strong>Content-Length:</strong> bulunmaya çalışır.
+                    </p>
+                    <p>Bu projede tasarım tercihi olarak GET isteğinde body varsa istek reddedilir.</p>
+                    <p><code>parse_http_request_header()</code> metodu hatasız tamamlanırsa return 0; döner.</p>
+                    <p>_handle_client() fonksiyonu içinde bir sonraki adım eğer varsa body içeriğinin eksiksiz olarak elde edilmesidir.</p>
+                    <pre><code>
+size_t current_body_size = total_bytes - (header_size + 4);
+if (current_body_size > 0)
+    {
+        startBody = endOfHeader + 4; // \r\n\r\n atlanarak body'nin başlangıcı bulunur
+    }
+                    </code></pre>
+                    <p>
+                        Eğer <code>current_body_size</code> beklenen Content-Length'ten az ise tekrar soket üzerinden tekrar veri okuması yapılır. Body
+                        boyutunun izin verilen maksimum kapasiteden az olmasına dikkat edilmesi gerekir. Edilmemesi zafiyet oluşturur.
+                    </p>
+                    <p>HTTP Request işlenip struct elemanı içinde tanımlamaları yapıldıktan sonra <code>route_request()</code> fonksiyonuna yönlendirilir.</p>
+                    <p class="file-ref">İlgili dosyalar: <code>include/http.h</code>, <code>src/http.c</code></p>
+                </article>
+
+                <article class="section-block" id="router">
+                    <span class="section-number">07</span>
+                    <h2>Router sistemi</h2>
+                    <p>
+                        Router, gelen request'in method ve path bilgisine bakarak hangi handler'in çalışacağına karar verir. <code>GET /</code> statik dosyaya,
+                        <code>POST /api/hello</code> API handler'ina gider.
+                    </p>
+                    <p>Bu katman projenin trafik polisi gibidir: request doğru yola buradan yönlendirilir.</p>
+                    <pre><code>
+int route_request(int client_fd, HttpRequest *httpRequest)
+{
+
+    if (strcmp(httpRequest->method, "GET") == 0)
+    {
+        if (strcmp(httpRequest->path, "/") == 0)
+        {
+
+            return sendStaticFile(client_fd, "/index.html");
+        }
+
+        return sendStaticFile(client_fd, httpRequest->path);
+    }
+    else if (strcmp(httpRequest->method, "POST") == 0)
+    {
+        char *is_api = strstr(httpRequest->path, "/api/");
+
+        if (is_api == NULL)
+        {
+            LOG_ERROR("Bad path: %s\n", httpRequest->path);
+            send_HttpError_Response(client_fd, 400); // bad request
+
+            return -1;
+        }
+
+        if (is_api == httpRequest->path) // /api/ ilk başta mı
+        {
+            return handleApi(client_fd, httpRequest);
+        }
+        else
+        {
+            send_HttpError_Response(client_fd, 400); // bad request
+            return -1;
+        }
+    }
+    else
+    {
+        send_HttpError_Response(client_fd, 400); // bad request
+        return -1;
+    }
+                    </code></pre>
+                    <p class="file-ref">İlgili dosya: <code>src/router.c</code></p>
+                </article>
+
+                <article class="section-block" id="static">
+                    <span class="section-number">08</span>
+                    <h2>Statik dosya sunumu</h2>
+                    <p>
+                        Statik dosya sunumu, URL path'inin güvenlik kontrolü ile başlar. <code>..</code>, <code>\</code> ve <code>%</code> karakterleri
+                        reddedilir.
+                    </p>
+                    <p><strong>Not:</strong> Yüzde işaretinin kabul edilmemesi tasarım basitliği tercihinden dolayıdır.</p>
+                    <p>
+                        URL güvenli ise statik dosyaların bulunduğu dizin olan <code>./www</code> ile string düzeyinde birleştirilerek işletim sisteminin
+                        anlayacağı dosya yolu elde edilir.
+                    </p>
+                    <pre><code>
+char *fileRoot = "./www";
+size_t filePathSize = strlen(fileRoot) + strlen(path) + 1;
+char *filePath = (char *)calloc(filePathSize, 1);
+                    </code></pre>
+                    <p>Dosya yolu <code>fopen()</code> sistem çağrısı ile açılmaya çalışılır.</p>
+                    <pre><code>
+FILE *file = fopen(filePath, "rb");
+                    </code></pre>
+                    <p>Eğer dosya mevcutsa Http response struct'ı tanımlanarak response oluşturulmaya başlanır.</p>
+                    <p>
+                        Response header'ına gönderilecek dosya formatının bilgisini içeren MIME tipi bilgisi <code>setMIMEtype()</code> fonksiyonu ile atanır.
+                        <code>prepfileSize()</code> fonksiyonu ile dosya boyutu hesaplanır ve response yapısına atanır.
+                    </p>
+                    <pre><code>
+HttpResponse httpResponse;
+httpResponse.MIMEtype = setMIMEtype(filePath);
+if (prepfileSize(file, &httpResponse) != 0)
+    {
+        send_HttpError_Response(client_fd, 500);
+        goto cleanup;
+    }
+                    </code></pre>
+                    <p><strong>Not: </strong><code> prepfileSize()</code> fonksiyonu başarısız olursa <strong>Sunucu içi hata kodu</strong> gönderilir.</p>
+                    <p>
+                        Gönderilecek dosyanın boyutu ve türü tespit edildikten sonra <code>prepHttpResponseHeader()</code> fonksiyonu ile response header string
+                        olarak hazırlanır ardından <code>sendHttpResponseHeader()</code> fonksiyonu ile istemciye yollanmaya çalışılır.
+                    </p>
+                    <p>
+                        Header gönderildikten sonra body yani asıl içerik olan statik dosya <code>sendFileContent()</code> fonksiyonu ile gönderilmeye
+                        çalışılır.
+                    </p>
+                    <p><strong>Not:</strong> Response gönderim işleminin detayları açıklanmıştır.</p>
+                    <p class="file-ref">İlgili dosyalar: <code>src/file_server.c</code>, <code>src/file_helper.c</code></p>
+                </article>
+
+                <article class="section-block" id="api">
+                    <span class="section-number">09</span>
+                    <h2>API noktaları</h2>
+                    <p>
+                        Sunucu POST metodu ile çalıştırılabilir endpointlere bağlı fonksiyonlar içerebilir. POST metotlarının çalışması için gerekli inputların
+                        JSON formatı şeklinde gelmesi zorunludur. Sunucuda şu anda 1 adet API mevcuttur.
+                    </p>
+                    <p>
+                        <code> /api/hello</code> : Fonksiyon JSON body içindeki <code>name</code> alanını okur. Geçerli veri varsa JSON formatında başarılı
+                        cevap üretir.
+                    </p>
+                    <div class="api-input-group">
+                        <label for="isim">İsim: </label>
+
+                        <input
+                            id="isim"
+                            name="isim"
+                            type="text"
+                            maxlength="20"
+                            pattern="[A-Za-zÇĞİÖŞÜçğıöşü]{1,20}"
+                            title="Sadece harf giriniz. En fazla 20 karakter olabilir."
+                            required />
+
+                        <button type="button" onclick="sonucuGoster()">Gönder</button>
+
+                        <div id="sonuc" role="status" aria-live="polite" class="api-response">Response</div>
+                    </div>
+
+                    <pre><code>
+REQUEST
+-------
+POST /api/hello HTTP/1.1
+Host: localhost:8080
+Content-Type: application/json
+Accept: application/json
+Content-Length: 14
+
+{"name":"Ali"}
+
+RESPONSE
+--------    
+HTTP/1.1 200 OK
+Content-Type: application/json
+Content-Length: 54
+
+{"status":"success","data":{"response":"merhaba Ali"}}
+</code></pre>
+                    <p class="file-ref">İlgili dosya: <code>src/api_server.c</code></p>
+                </article>
+                <article class="section-block" id="httpc">
+                    <span class="section-number">10</span>
+                    <h2>http.c dosyası ve veri gönderme detayları</h2>
+                    <p>
+                        Projede bulunan http.c dosyası, HTTP hata mesajlarını, statik dosya ve api cevaplarını sistem çağrıları kullanarak gönderen
+                        fonksiyonları içerir.
+                    </p>
+
+                    <p>
+                        Hata mesajlarının içerikleri güncellenebileceği için hata mesajlarının header ve tüm response metinleri dinamik olarak
+                        <code>init...</code> fonksiyonları ile sunucu başlatılırken oluşturulur.
+                    </p>
+                    <p>Dosya ve API cevapları da <code>HttpResponse</code> yapısı (struct) içindeki veriler kullanılarak oluşturulurlar.</p>
+                    <pre><code>
+// Response Header dinamik olarak hazırlanır.
+int prepHttpResponseHeader(HttpResponse *httpResponse)
+{
+    strcpy(httpResponse->statusLine, httppOKStatus);
+    size_t size = sizeof(httpResponse->headers);
+    int n = snprintf(httpResponse->headers, size,
+                     "Content-Type: %s\r\n"
+                     "Content-Length: %ld\r\n"
+                     "Connection: close\r\n"
+                     "Cache-Control: no-store\r\n"
+                     "\r\n",
+                     httpResponse->MIMEtype,
+                     httpResponse->fileSize);
+
+    if (n < 0 || n >= (int)size)
+    {
+        LOG_ERROR("Creating response header didnt work.\n");
+        return -1;
+    }
+
+    return 0;
+}
+
+// Api hatalarının Response Headeri dinamik olarak hazırlanır.
+int prepApiErrorHeader(HttpResponse *httpResponse)
+{
+    strcpy(httpResponse->statusLine, httpBadRequestStatus);
+    size_t size = sizeof(httpResponse->headers);
+    int n = snprintf(httpResponse->headers, size,
+                     "Content-Type: %s\r\n"
+                     "Content-Length: %ld\r\n"
+                     "Connection: close\r\n"
+                     "Cache-Control: no-store\r\n"
+                     "\r\n",
+                     httpResponse->MIMEtype,
+                     httpResponse->fileSize);
+
+    if (n < 0 || n >= (int)size)
+    {
+        LOG_ERROR("Creating response header didnt work.\n");
+        return -1;
+    }
+
+    return 0;
+}
+                    </code></pre>
+                    <p>
+                        Response gönderimi sırasında çeşitli sebeplerden dolayı veriler tek seferde gitmeyebilir. Mesajın gitmesinden emin olmak için
+                        <code>_sendAll()</code> fonksiyonu oluşturulmuştur. Bütün response çeşitleri (statik, api vb.) bu fonksiyon ile iletilerini yollarlar.
+                    </p>
+                    <pre><code>
+ int sendFileContent(int client_fd, FILE *file)
+{
+    char BUFFER[BUFFER_SIZE];
+    size_t bytesRead;
+
+    while ((bytesRead = fread(BUFFER, 1, BUFFER_SIZE, file)) > 0)
+    {
+        _sendAll(client_fd, BUFFER, bytesRead);
+    }
+    return 0;
+}
+
+int sendApiContent(int client_fd, char *json_string)
+{
+    size_t size = strlen(json_string);
+
+    _sendAll(client_fd, json_string, size);
+
+    return 0;
+}
+                    </code></pre>
+                    <p>
+                        <code>_sendAll()</code> fonksiyonu gönderilmek istenen byte sayısına ulaşılana kadar <code>send()</code> yerleşik C fonksiyonu ile
+                        alıcıya byte gönderir. Her gönderim sırasında başarıyla giden byte'lar toplanarak gönderilmek istenen miktarla karşılaştırılır.
+                        <code>bytesSent == bytesRead</code>
+                        olduğu anda ise gönderim tamamlanmıştır.
+                    </p>
+                    <pre><code>
+ int _sendAll(int client_fd, const char *buffer, size_t bytesRead)
+{
+    size_t bytesSent = 0;
+    size_t bytesRemaining;
+    ssize_t n;
+    const char *bufferStartPoint;
+
+    while (bytesSent < bytesRead)
+    {
+        bufferStartPoint = buffer + bytesSent;
+        bytesRemaining = bytesRead - bytesSent;
+        n = send(client_fd, bufferStartPoint, bytesRemaining, 0);
+
+        if (n <= 0)
+        {
+            LOG_ERROR("send() function: -1.\n");
+            return -1;
+        }
+
+        bytesSent += n;
+    }
+
+    return 0;
+}
+                    </code></pre>
+                    <p class="file-ref">İlgili dosya: <code>src/http.c</code></p>
+                </article>
+
+                <article class="section-block" id="errors">
+                    <span class="section-number">11</span>
+                    <h2>HTTP hata cevapları</h2>
+                    <p>HTTP server sadece başarılı cevapları değil, hatalı durumları da uygun status code'larla dönmelidir.</p>
+                    <p>Sunucuda tanımlanmış ve uygun durumlarda dönen hata kodları:</p>
+                    <div class="status-grid" aria-label="HTTP hata kodları">
+                        <div><strong>400</strong><span>Bozuk request</span></div>
+                        <div><strong>404</strong><span>Kaynak yok</span></div>
+                        <div><strong>405</strong><span>Method uygun değil</span></div>
+                        <div><strong>500</strong><span>Server hatası</span></div>
+                        <div><strong>408</strong><span>Okuma zaman aşımı</span></div>
+                    </div>
+                    <p class="file-ref">İlgili dosya: <code>src/http.c</code></p>
+                </article>
+
+                <article class="section-block" id="limits">
+                    <span class="section-number">12</span>
+                    <h2>Sistemin sınırları ve öğrendiklerim</h2>
+                    <p>
+                        Bu proje üretim seviyesinde bir web sunucusu değildir. HTTPS, keep-alive, chunked transfer, cookie/session ve detaylı header parsing
+                        desteklenmez.
+                    </p>
+                    <p>
+                        Proje bilgisayar mühendisliği müfredatı sistem programlama ve işletim sistemleri ve web programlama derslerinde öğretilen soket
+                        programlama, HTTP metin formatı, thread pooling, routing, statik dosya yönetimi ve API yönetimi gibi temel C dili ve web konularını
+                        somut ve az soyutlama (abstraction) ile birleştirir ve canlı bir sunucuda çalışabildiğini gösterir.
+                    </p>
+                    <p class="file-ref">İlgili kaynak: <code>README.md</code></p>
+                </article>
+
+                <section class="proof" id="proof">
+                    <h2>Sonuç</h2>
+                    <p>
+                        Bu projenin amacı, hazır bir web framework kullanmadan HTTP sunucusunun temel çalışma mantığını C diliyle anlamak ve derslerde
+                        öğrendiğim teorik bilgileri gerçek bir sistem programlama örneği üzerinde uygulamaktı.
+                    </p>
+
+                    <p>
+                        Yapay zekayı bu süreçte hazır kod üreten bir araçtan ziyade teknik bir mentor gibi kullandım. Kodun büyük kısmını kendim yazarak socket
+                        programlama, HTTP request/response yapısı, thread pool, kuyruk mantığı ve hata yönetimi gibi konuları adım adım anlamaya çalıştım.
+                    </p>
+
+                    <p>
+                        Yapay zeka özellikle uzun hata mesajlarını yorumlama, C fonksiyonlarının davranışını açıklama, kritik bug'ları fark etme ve tasarım
+                        kararlarını değerlendirme aşamalarında yardımcı oldu. Bu nedenle proje kapsam olarak küçük olsa da, benim için anlaşılabilir,
+                        açıklanabilir ve öğretici bir sistem geliştirme deneyimi oldu.
+                    </p>
+                </section>
+            </section>
+        </main>
+        <script src="js/index.js"></script>
     </body>
 </html>

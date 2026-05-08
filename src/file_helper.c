@@ -17,9 +17,6 @@ const char *setMIMEtype(const char *filePath)
         return "application/octet-stream";
     }
 
-    // İsteğe bağlı debug çıktısı
-    // printf("ext deger: %s\n", ext);
-
     // strcasecmp kullanarak büyük/küçük harf duyarsız kontrol yap (Örn: .PNG ve .png aynıdır)
     if (strcasecmp(ext, ".html") == 0 || strcasecmp(ext, ".htm") == 0)
         return "text/html; charset=utf-8";
@@ -36,6 +33,12 @@ const char *setMIMEtype(const char *filePath)
     if (strcasecmp(ext, ".jpg") == 0 || strcasecmp(ext, ".jpeg") == 0)
         return "image/jpeg";
 
+    if (strcmp(ext, ".mp4") == 0)
+        return "video/mp4";
+
+    if (strcmp(ext, ".mp3") == 0)
+        return "audio/mpeg";
+        
     if (strcasecmp(ext, ".json") == 0)
         return "application/json";
 
@@ -44,12 +47,15 @@ const char *setMIMEtype(const char *filePath)
 }
 int prepfileSize(FILE *file, HttpResponse *httpResponse)
 {
-    printf("prepfonksiyonuna girildi");
 
     fseek(file, 0, SEEK_END);
     long fileSize = ftell(file);
     rewind(file);
 
-    httpResponse->fileSize = fileSize;
-    return 0;
+    if (fileSize >= 0)
+    {
+        httpResponse->fileSize = fileSize;
+        return 0;
+    }
+    return -1;
 }

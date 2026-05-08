@@ -1,31 +1,44 @@
 #include "router.h"
 
-void route_request(int client_fd, HttpRequest *httpRequest)
+// GET, POST, API ayrımı yapılan nokta
+int route_request(int client_fd, HttpRequest *httpRequest)
 {
-    printf("route_request hosgeldin\n");
-    printf("metot:%s\nPATH:%s\nbody:%s\n", httpRequest->method, httpRequest->path, httpRequest->body);
 
     if (strcmp(httpRequest->method, "GET") == 0)
     {
-        sendStaticFile(client_fd, httpRequest->path);
+        if (strcmp(httpRequest->path, "/") == 0)
+        {
+
+            return sendStaticFile(client_fd, "/index.html");
+        }
+
+        return sendStaticFile(client_fd, httpRequest->path);
     }
     else if (strcmp(httpRequest->method, "POST") == 0)
     {
         char *is_api = strstr(httpRequest->path, "/api/");
+
+        if (is_api == NULL)
+        {
+            LOG_ERROR("Bad path: %s\n", httpRequest->path);
+            send_HttpError_Response(client_fd, 400); // bad request
+
+            return -1;
+        }
+
         if (is_api == httpRequest->path) // /api/ ilk bastami
         {
-            handleApi(client_fd, httpRequest);
-            return;
+            return handleApi(client_fd, httpRequest);
         }
         else
         {
-            send_BadRequest_Response(client_fd);
-            return;
+            send_HttpError_Response(client_fd, 400); // bad request
+            return -1;
         }
     }
     else
     {
-        send_BadRequest_Response(client_fd);
-        return;
+        send_HttpError_Response(client_fd, 400); // bad request
+        return -1;
     }
 }

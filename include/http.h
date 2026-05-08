@@ -7,10 +7,9 @@
 #include <sys/socket.h>
 
 #define MAX_HEADER_SIZE 8192 // 8 KB
-#define MAX_BODY_SIZE 65536  // 64 KB
 #define MAX_REQ_SIZE 53248
 #define RECV_CHUNK_SIZE 1024 // Her recv'de en fazla 1 KB oku
-
+#define STATIC_RES_HEADER_SIZE 512
 typedef struct
 {
     char method[16];  // "GET", "POST", "DELETE" vs. için fazlasıyla yeterli
@@ -24,27 +23,39 @@ typedef struct
 typedef struct
 {
     char statusLine[32];
-    const char *MIMEtype;
     char headers[300];
+    const char *MIMEtype;
     long fileSize;
+
 } HttpResponse;
 
-extern const char *httpOKStatus;
 extern char *httpNotFoundResponse;
-extern const char *httpServerErrorStatus;
+extern char *httpServerErrorResponse;
+extern char *httpBadRequestResponse;
+extern char *httpTimeoutResponse;
+extern char *httpNotAllowedResponse;
 
 void initHttpNotFoundHeaders();
 void initHttpServerErrorHeaders();
 void initHttpBadRequestHeaders();
+void initHttpTimeoutHeaders();
+void initHttpNotAllowedHeaders();
+
 int initHttpNotFoundResponse();
+int initServerErrorResponse();
 int initHttpBadRequestResponse();
-void sendHttpResponseHeader(int client_fd, HttpResponse *httpResponse);
-int prepHttpResponseHeader(HttpResponse *httpResponse);
+int initHttpTimeoutResponse();
+int initHttpNotAllowedResponse();
+
 int parse_http_request_header(char *buffer, HttpRequest *httpRequest);
-int parse_http_request_body(char *buffer, HttpRequest *httpRequest, char *endOfHeader, size_t body_size);
+int parse_http_request_body(HttpRequest *httpRequest, char *startBody, size_t body_size);
 
-int send_404Http_Response(int client_fd);
-int send_BadRequest_Response(int client_fd);
+int prepHttpResponseHeader(HttpResponse *httpResponse);
+int prepApiErrorHeader(HttpResponse *httpResponse);
+
+int sendHttpResponseHeader(int client_fd, HttpResponse *httpResponse);
+
+int send_HttpError_Response(int client_fd, int statusCode);
 int sendFileContent(int client_fd, FILE *file);
-
+int sendApiContent(int client_fd, char *json_string);
 #endif

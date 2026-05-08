@@ -12,10 +12,10 @@
 #include <sys/time.h>
 #include <signal.h>
 #include <errno.h>
-#define BACKLOG 10
 
+#define BACKLOG 36
 #define THREAD_COUNT 8
-#define QUEUE_SIZE 128
+#define QUEUE_SIZE 32
 
 extern int queue[QUEUE_SIZE];
 extern int front;

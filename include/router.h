@@ -5,6 +5,6 @@
 #include "api_server.h"
 #include "file_server.h"
 
-void route_request(int client_fd, HttpRequest *httpRequest);
+int route_request(int client_fd, HttpRequest *httpRequest);
 
 #endif
