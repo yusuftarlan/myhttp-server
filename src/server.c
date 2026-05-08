@@ -3,9 +3,9 @@
 
 int server_running = 1;
 
-pthread_mutex_t queue_mutex = PTHREAD_MUTEX_INITIALIZER; //Kuyruğu trade safe yapmak için
-pthread_cond_t queue_cond = PTHREAD_COND_INITIALIZER; //Thread durum yönetimi için
-pthread_t threads[THREAD_COUNT]; //Threadleri yönetmek için dizi
+pthread_mutex_t queue_mutex = PTHREAD_MUTEX_INITIALIZER; // Kuyruğu trade safe yapmak için
+pthread_cond_t queue_cond = PTHREAD_COND_INITIALIZER;    // Thread durum yönetimi için
+pthread_t threads[THREAD_COUNT];                         // Threadleri yönetmek için dizi
 
 int queue[QUEUE_SIZE]; // Client_fd 'leri tutan trade safe dizi
 int front = 0;
@@ -413,6 +413,6 @@ int server_start(int PORT)
     }
 
     closingRoutine(server_fd);
-    LOG_INFO("Server closeda \n");
+    LOG_INFO("Server closed \n");
     return 0;
 }
