@@ -593,3 +593,13 @@ pre code {
         grid-template-columns: 1fr;
     }
 }
+
+video {
+    border-radius: 8px;
+    border: 1px solid var(--line);
+    box-shadow: var(--shadow);
+    display: block;
+    max-width: 100%;
+    height: auto;
+    background: var(--surface);
+}

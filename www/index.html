@@ -24,17 +24,11 @@
                         Bu proje, hazır bir web framework kullanmadan socket seviyesinden başlayıp istek okuma, yönlendirme, statik dosya sunma ve JSON cevap
                         üretme süreçlerini adım adım gösterir.
                     </p>
-                    <div>
-                        <audio controls>
-                            <source src="/media/demo.mp3" type="audio/mpeg" />
-                            Tarayıcınız audio etiketini desteklemiyor.
-                        </audio>
 
-                        <!-- <video controls width="640">
-                            <source src="/media/gitar.mp4" type="video/mp4" />
-                            Tarayıcınız video etiketini desteklemiyor.
-                        </video>-->
-                    </div>
+                    <video controls width="640">
+                        <source src="/media/guide.mp4" type="video/mp4" />
+                        Tarayıcınız video etiketini desteklemiyor.
+                    </video>
                 </div>
                 <div class="hero-image" aria-label="Sunucu görseli">
                     <img src="hero-img.png" alt="C dili ile HTTP sunucusu görseli" loading="eager" decoding="async" />
@@ -681,7 +675,7 @@ int sendApiContent(int client_fd, char *json_string)
                     <h2>Sistemin sınırları ve öğrendiklerim</h2>
                     <p>
                         Bu proje üretim seviyesinde bir web sunucusu değildir. HTTPS, keep-alive, chunked transfer, cookie/session ve detaylı header parsing
-                        desteklenmez.
+                        bilinçli olarak kapsam dışı bırakılmıştır.
                     </p>
                     <p>
                         Proje bilgisayar mühendisliği müfredatı sistem programlama ve işletim sistemleri ve web programlama derslerinde öğretilen soket
