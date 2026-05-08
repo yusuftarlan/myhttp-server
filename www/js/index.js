@@ -1,4 +1,4 @@
-const API_BASE_URL = "http://localhost:8080";
+
 
 async function sonucuGoster() {
     console.log("sonucuGoster fonksiyonu çağrıldı");
@@ -15,7 +15,7 @@ async function sonucuGoster() {
     resultBox.textContent = "İstek gönderiliyor...";
 
     try {
-        const response = await fetch(`${API_BASE_URL}/api/hello`, {
+        const response = await fetch(`/api/hello`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
